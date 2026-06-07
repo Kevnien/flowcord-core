@@ -262,8 +262,14 @@ export class MenuSession implements MenuSessionLike {
       throw new Error(`Menu "${menuId}" is not registered.`);
     }
 
+    const { noHistory } = options ?? {};
+
+    const shouldTrackCurrent =
+      this._currentMenu?.definition.isTrackedInHistory &&
+      noHistory !== true;
+
     // If we have a current menu that's tracked, push it to history
-    if (this._currentMenu?.definition.isTrackedInHistory) {
+    if (shouldTrackCurrent && this._currentMenu) {
       const entry: MenuStackEntry = {
         menuId: this._currentMenu.name,
         options: this._currentOptions,

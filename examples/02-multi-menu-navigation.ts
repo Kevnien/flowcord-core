@@ -151,6 +151,14 @@ export function register(flowcord: FlowCord): void {
       ])
       .setButtons(() => [
         {
+          label: '◀',
+          style: ButtonStyle.Primary,
+          action: goTo('recipe-detail', {
+            recipeId: getPreviousRecipeId(recipe),
+            noHistory: true,
+          }), // noHistory so Back goes to cookbook, not previous recipe
+        },
+        {
           label: '📋 View Ingredients',
           style: ButtonStyle.Primary,
           // Navigate deeper into the ingredient list
@@ -164,12 +172,33 @@ export function register(flowcord: FlowCord): void {
             ctx.state.set('favorited', true);
           },
         },
+        {
+          label: '▶',
+          style: ButtonStyle.Primary,
+          action: goTo('recipe-detail', {
+            recipeId: getNextRecipeId(recipe),
+            noHistory: true,
+          }), // noHistory so Back goes to cookbook, not previous recipe
+        },
       ])
       .setReturnable() // Shows ← Back button
       .setTrackedInHistory() // So 'ingredients' can goBack() here
       .setFallbackMenu('cookbook') // If opened directly (empty stack), Back → cookbook
       .build();
   });
+
+  const getPreviousRecipeId = (recipe: Recipe) => {
+    const currentIndex = recipes.findIndex((r) => r.id === recipe.id);
+    const previousIndex =
+      (currentIndex - 1 + recipes.length) % recipes.length;
+    return recipes[previousIndex].id;
+  };
+
+  const getNextRecipeId = (recipe: Recipe) => {
+    const currentIndex = recipes.findIndex((r) => r.id === recipe.id);
+    const nextIndex = (currentIndex + 1) % recipes.length;
+    return recipes[nextIndex].id;
+  };
 
   // ---------------------------------------------------------------------------
   // Menu 3: Ingredients
