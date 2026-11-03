@@ -500,6 +500,14 @@ export class MenuBuilder<
     return this;
   }
 
+  onUpdateOptions(
+    fn: HookFn<TCtx>,
+    previousOptions?: Record<string, unknown>,
+  ): this {
+    this._hooks.onUpdateOptions = fn;
+    return this;
+  }
+
   // -----------------------------------------------------------------------
   // Context extension (used by builder subclasses)
   // -----------------------------------------------------------------------
