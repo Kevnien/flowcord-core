@@ -546,12 +546,12 @@ export class MenuSession implements MenuSessionLike {
    */
   async updateOptions(
     options?: Record<string, unknown>,
-    config?: { preserveState?: boolean; preserveInstance?: boolean },
+    config?: { preserveState?: boolean },
   ): Promise<void> {
     if (!this._currentMenu) return;
 
+    const previousOptions = this._currentOptions ?? {};
     const preserveState = config?.preserveState === true;
-    const preserveInstance = config?.preserveInstance === true;
     const nextOptions = options ?? this._currentOptions ?? {};
 
     const factory = this._engine.menuRegistry.getFactory(
@@ -567,18 +567,13 @@ export class MenuSession implements MenuSessionLike {
     const newState = preserveState
       ? this._currentMenu.stateAccessor.current
       : undefined;
-    if (!preserveInstance) {
-      this._currentMenu = new MenuInstance(
-        definition,
-        this.id,
-        newState,
-      );
-    }
+    const instance = new MenuInstance(definition, this.id, newState);
+    this._currentMenu = instance;
     this._currentOptions = nextOptions;
 
     const ctx = this.buildContext(this._currentMenu);
 
-    if (!preserveInstance && definition.setup) {
+    if (!preserveState && definition.setup) {
       await definition.setup(ctx);
     }
 
@@ -586,6 +581,7 @@ export class MenuSession implements MenuSessionLike {
       'onUpdateOptions',
       ctx,
       this._currentMenu.definition.hooks,
+      previousOptions,
     );
   }
 
@@ -671,8 +667,9 @@ export class MenuSession implements MenuSessionLike {
     name: HookName,
     ctx: MenuContext,
     menuHooks?: MenuHooks,
+    ...args: [previousOptions?: Record<string, unknown>]
   ): Promise<void> {
-    await this._lifecycleManager.emit(name, ctx, menuHooks);
+    await this._lifecycleManager.emit(name, ctx, menuHooks, ...args);
     this._emitEvent({
       kind: 'hook',
       menuId: ctx.menu.name,
@@ -1502,10 +1499,7 @@ export class MenuSession implements MenuSessionLike {
       },
       updateOptions: async (
         options?: Record<string, unknown>,
-        config?: {
-          preserveState?: boolean;
-          preserveInstance?: boolean;
-        },
+        config?: { preserveState?: boolean },
       ) => {
         await this.updateOptions(options, config);
       },

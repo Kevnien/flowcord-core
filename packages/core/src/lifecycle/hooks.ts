@@ -12,6 +12,11 @@ export type HookFn<TCtx = MenuContext> = (
   ctx: TCtx,
 ) => Awaitable<void>;
 
+export type OnUpdateOptionsHookFn<TCtx = MenuContext> = (
+  ctx: TCtx,
+  previousOptions: Record<string, unknown>,
+) => Awaitable<void>;
+
 /**
  * All available lifecycle hook names.
  */
@@ -30,6 +35,9 @@ export type HookName =
  * Map of hook name → hook function.
  * All hooks are optional.
  */
-export type MenuHooks<TCtx = MenuContext> = {
-  [K in HookName]?: HookFn<TCtx>;
+export type MenuHooks<TCtx = MenuContext> = Omit<
+  { [K in HookName]?: HookFn<TCtx> },
+  'onUpdateOptions'
+> & {
+  onUpdateOptions?: OnUpdateOptionsHookFn<TCtx>;
 };
